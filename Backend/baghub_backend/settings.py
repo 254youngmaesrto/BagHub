@@ -124,6 +124,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://baghub-frontend-254.vercel.app",
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'api.User'

@@ -122,6 +122,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://baghub-frontend-254.vercel.app",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

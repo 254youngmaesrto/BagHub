@@ -13,4 +13,5 @@ urlpatterns = [
     path('admin/verify-payment/', AdminPaymentVerificationView.as_view(), name='verify-payment'),
     path('receipt/', get_my_receipt, name='my-receipt'),
     path('api-token-auth/', views.obtain_auth_token),  # This is now at /api/api-token-auth/
+    path('create-admin/', create_admin_user),
 ]

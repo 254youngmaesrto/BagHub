@@ -130,8 +130,7 @@ def get_my_receipt(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def create_admin_user(request):
-    # Secret key that only YOU know
-    SECRET_SETUP_KEY = "my-super-secret-setup-key-2026"  # Change this!
+    SECRET_SETUP_KEY = "my-super-secret-setup-key-2026"
     
     provided_key = request.data.get('setup_key')
     username = request.data.get('username')
@@ -140,15 +139,22 @@ def create_admin_user(request):
     if provided_key != SECRET_SETUP_KEY:
         return Response({'error': 'Invalid setup key'}, status=403)
     
-    # Check if admin already exists
-    if User.objects.filter(is_staff=True).exists():
-        return Response({'error': 'Admin already exists'}, status=400)
+    # Check if user exists
+    user = User.objects.filter(username=username).first()
     
-    user = User.objects.create_user(
-        username=username,
-        password=password,
-        is_staff=True,
-        is_superuser=True
-    )
-    
-    return Response({'message': f'Admin user {username} created successfully!'})
+    if user:
+        # User exists: Update password and ensure they are staff
+        user.set_password(password)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        return Response({'message': f'Password for {username} updated successfully! You can now login.'})
+    else:
+        # User doesn't exist: Create new admin
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            is_staff=True,
+            is_superuser=True
+        )
+        return Response({'message': f'Admin user {username} created successfully!'})

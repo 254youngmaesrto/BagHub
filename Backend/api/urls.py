@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .views import ProductViewSet, CheckoutView, AdminPaymentVerificationView, get_my_receipt
+from .views import create_admin_user
 
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')

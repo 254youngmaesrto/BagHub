@@ -1,5 +1,6 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import transaction
@@ -125,3 +126,29 @@ def get_my_receipt(request):
         return Response(ReceiptSerializer(receipt).data)
     except Receipt.DoesNotExist:
         return Response({"error": "Receipt not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def create_admin_user(request):
+    # Secret key that only YOU know
+    SECRET_SETUP_KEY = "my-super-secret-setup-key-2026"  # Change this!
+    
+    provided_key = request.data.get('setup_key')
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if provided_key != SECRET_SETUP_KEY:
+        return Response({'error': 'Invalid setup key'}, status=403)
+    
+    # Check if admin already exists
+    if User.objects.filter(is_staff=True).exists():
+        return Response({'error': 'Admin already exists'}, status=400)
+    
+    user = User.objects.create_user(
+        username=username,
+        password=password,
+        is_staff=True,
+        is_superuser=True
+    )
+    
+    return Response({'message': f'Admin user {username} created successfully!'})

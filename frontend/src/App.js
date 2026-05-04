@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import CustomerHome from './pages/CustomerHome';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
-import Login from './pages/Login'; // <--- Import the new Login page
+import Login from './pages/Login';
+import Register from './pages/Register'; // <-- Added Register import
 
 function App() {
   // --- STATE ---
@@ -13,26 +14,24 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // --- 1. CHECK LOGIN ON STARTUP ---
-  // useEffect runs once when the app loads
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true); // If token exists, user is already logged in
+      setIsAuthenticated(true);
     }
   }, []);
 
   // --- 2. LOGIN HANDLER ---
-  // Called by Login.js after successful authentication
   const handleLogin = () => {
     setIsAuthenticated(true);
-    setCurrentView('admin');
+    setCurrentView('customer'); // Go back to shopping after login
   };
 
   // --- 3. LOGOUT HANDLER ---
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Delete the token
-    setIsAuthenticated(false);        // Set state to false
-    setCurrentView('customer');       // Go back to home
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setCurrentView('customer');
   };
 
   // --- 4. NAVIGATION LOGIC ---
@@ -40,8 +39,23 @@ function App() {
     if (isAuthenticated) {
       setCurrentView('admin');
     } else {
-      setCurrentView('login'); // Force login screen if not authenticated
+      setCurrentView('login');
     }
+  };
+
+  // --- 5. NEW: Handle "Go to Login" from Checkout ---
+  const goToLogin = () => {
+    setCurrentView('login');
+  };
+
+  // --- 6. NEW: Handle "Go to Register" from Checkout ---
+  const goToRegister = () => {
+    setCurrentView('register');
+  };
+
+  // --- 7. NEW: Handle successful registration ---
+  const handleRegisterSuccess = () => {
+    setCurrentView('login'); // After registering, go to login
   };
 
   // --- RENDER ---
@@ -78,22 +92,47 @@ function App() {
       {/* --- MAIN CONTENT --- */}
       <main className="p-4">
         
+        {/* LOGIN VIEW */}
         {currentView === 'login' && (
-          <Login onLogin={handleLogin} />
+          <Login 
+            onLogin={handleLogin} 
+            onSwitchToRegister={goToRegister} // Allow switching to register from login
+          />
         )}
 
+        {/* REGISTER VIEW */}
+        {currentView === 'register' && (
+          <Register 
+            onRegisterSuccess={handleRegisterSuccess}
+            onSwitchToLogin={goToLogin} // Allow switching to login from register
+          />
+        )}
+
+        {/* ADMIN VIEW */}
         {currentView === 'admin' && isAuthenticated && (
           <AdminDashboard />
         )}
 
+        {/* CUSTOMER HOME VIEW */}
         {currentView === 'customer' && !selectedProduct && (
-          <CustomerHome onCheckout={(product) => { setSelectedProduct(product); setCurrentView('checkout'); }} />
+          <CustomerHome 
+            onCheckout={(product) => { 
+              setSelectedProduct(product); 
+              setCurrentView('checkout'); 
+            }} 
+          />
         )}
 
+        {/* CHECKOUT VIEW */}
         {currentView === 'checkout' && selectedProduct && (
           <Checkout 
             product={selectedProduct} 
-            onComplete={() => { setSelectedProduct(null); setCurrentView('customer'); }} 
+            onComplete={() => { 
+              setSelectedProduct(null); 
+              setCurrentView('customer'); 
+            }}
+            onGoToLogin={goToLogin}      // <-- Pass login handler
+            onGoToRegister={goToRegister} // <-- Pass register handler
           />
         )}
         

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, onSwitchToRegister }) => {
   // State for form inputs
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -90,3 +90,9 @@ const Login = ({ onLogin }) => {
 };
 
 export default Login;
+<p style={{ marginTop: '15px', textAlign: 'center' }}>
+  Don't have an account?{' '}
+  <a href="#" onClick={(e) => { e.preventDefault(); if (onSwitchToRegister) onSwitchToRegister(); }} style={{ color: '#007bff', cursor: 'pointer' }}>
+    Sign Up here
+  </a>
+</p>

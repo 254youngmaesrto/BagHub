@@ -1,31 +1,46 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 
-const Checkout = ({ product, onComplete }) => {
+// 1. ADD THESE PROPS: onGoToLogin, onGoToRegister
+const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
+    
     const [phoneNumber, setPhoneNumber] = useState('');
     const [loading, setLoading] = useState(false);
 
-    // 1. CHECK IF USER IS LOGGED IN
+    // CHECK IF USER IS LOGGED IN
     const token = localStorage.getItem('token');
 
     // --- SCENARIO A: USER IS NOT LOGGED IN ---
     if (!token) {
         return (
-            <div style={{ textAlign: 'center', padding: '50px', backgroundColor: '#f8f9fa', borderRadius: '10px' }}>
+            <div style={{ textAlign: 'center', padding: '50px', backgroundColor: '#f8f9fa', borderRadius: '10px', margin: '20px' }}>
                 <h2 style={{ color: '#dc3545' }}>Access Denied</h2>
                 <p>You must be logged in to purchase items.</p>
                 <p>Please Login or Sign Up to proceed with your payment.</p>
-                <div style={{ marginTop: '20px' }}>
-                    <a href="/login" style={{ 
-                        backgroundColor: '#007bff', color: 'white', padding: '10px 20px', 
-                        borderRadius: '5px', textDecoration: 'none', marginRight: '10px' 
-                    }}>
+                
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                    
+                    {/* CORRECT "Go to Login" BUTTON */}
+                    <a 
+                        href="#" 
+                        onClick={(e) => { e.preventDefault(); if (onGoToLogin) onGoToLogin(); }} 
+                        style={{ 
+                            backgroundColor: '#007bff', color: 'white', padding: '10px 20px', 
+                            borderRadius: '5px', textDecoration: 'none', cursor: 'pointer'
+                        }}
+                    >
                         Go to Login
                     </a>
-                    <a href="/register" style={{ 
-                        backgroundColor: '#28a745', color: 'white', padding: '10px 20px', 
-                        borderRadius: '5px', textDecoration: 'none' 
-                    }}>
+
+                    {/* CORRECT "Sign Up" BUTTON */}
+                    <a 
+                        href="#" 
+                        onClick={(e) => { e.preventDefault(); if (onGoToRegister) onGoToRegister(); }} 
+                        style={{ 
+                            backgroundColor: '#28a745', color: 'white', padding: '10px 20px', 
+                            borderRadius: '5px', textDecoration: 'none', cursor: 'pointer'
+                        }}
+                    >
                         Sign Up
                     </a>
                 </div>
@@ -33,13 +48,13 @@ const Checkout = ({ product, onComplete }) => {
         );
     }
 
-    // --- SCENARIO B: USER IS LOGGED IN (Show Payment Form) ---
+    // --- SCENARIO B: USER IS LOGGED IN (SHOW PAYMENT FORM) ---
+    
     const handlePayment = async (e) => {
         e.preventDefault();
         setLoading(true);
 
         try {
-            // Send payment request
             await api.post('/checkout/', {
                 phone_number: phoneNumber,
                 amount: product.price,
@@ -53,7 +68,7 @@ const Checkout = ({ product, onComplete }) => {
             console.error('Payment error:', error);
             if (error.response && error.response.status === 403) {
                  alert('Session expired. Please login again.');
-                 window.location.href = '/login';
+                 if (onGoToLogin) onGoToLogin();
             } else {
                 alert('Payment failed. Please try again.');
             }

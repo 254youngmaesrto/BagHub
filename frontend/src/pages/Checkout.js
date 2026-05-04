@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../../api/axios';
+import api from '../api/axios';
 
 const Checkout = ({ product, onComplete }) => {
     const [phoneNumber, setPhoneNumber] = useState('');

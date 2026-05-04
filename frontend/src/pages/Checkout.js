@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import api from '../api/axios';
 
 const Checkout = ({ product, onComplete }) => {
-  const [processing, setProcessing] = useState(false);
-  const [paid, setPaid] = useState(false);
-  const [receiptData, setReceiptData] = useState(null);
+  const [_processing, setProcessing] = useState(false);
+  const [_paid, setPaid] = useState(false);
+  const [_receiptData, setReceiptData] = useState(null);
 
   const handlePayment = async () => {
     try {

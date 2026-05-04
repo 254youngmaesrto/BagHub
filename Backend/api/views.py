@@ -102,6 +102,7 @@ class CheckoutView(APIView):
     
 
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')

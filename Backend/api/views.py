@@ -41,7 +41,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         else:
             print("User not authenticated!")  
 class CheckoutView(APIView):
-    class CheckoutView(APIView):
+    
     permission_classes = [IsAuthenticated]  # <-- PASTE THIS EXACT LINE
     
 

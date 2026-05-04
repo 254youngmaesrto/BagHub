@@ -22,8 +22,7 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # Authentication
-    path('api-token-auth/', auth_views.obtain_auth_token, name='api-token-auth'),
-    
+    path('api-token-auth/', CustomLoginView.as_view(), name='api-token-auth'),
     # User Registration
     path('register/', RegisterView.as_view(), name='register'),
     

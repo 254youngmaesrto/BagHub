@@ -13,13 +13,19 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         setError('');
         setLoading(true);
         try {
-            const response = await api.post('/api-token-auth/', { username, password });
-            localStorage.setItem('token', response.data.token);
-            onLogin(); // Tell App.js user is logged in
-        } catch (err) {
-            setError('Invalid username or password.');
-        } finally {
-            setLoading(false);
+        const response = await api.post('/api-token-auth/', { username, password });
+        
+        localStorage.setItem('token', response.data.token);
+        
+        // Pass the admin status to App.js
+        if (onLogin) {
+            onLogin(response.data.is_admin); // <-- Pass true/false
+        }
+    } catch (err) {
+        setError('Invalid username or password.');
+    } finally {
+        setLoading(false);
+    }
         }
     };
 

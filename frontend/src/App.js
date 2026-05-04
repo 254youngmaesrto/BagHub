@@ -24,6 +24,7 @@ function App() {
   // --- 2. LOGIN HANDLER ---
   const handleLogin = () => {
     setIsAuthenticated(true);
+    setIsAdmin(userIsAdmin || false); // Store admin status
     setCurrentView('customer'); // Go back to shopping after login
   };
 
@@ -36,10 +37,10 @@ function App() {
 
   // --- 4. NAVIGATION LOGIC ---
   const switchToAdmin = () => {
-    if (isAuthenticated) {
-      setCurrentView('admin');
+    if (isAdmin) { // Only allow if actually an admin
+        setCurrentView('admin');
     } else {
-      setCurrentView('login');
+        alert('Access Denied: You do not have admin privileges.');
     }
   };
 
@@ -57,6 +58,7 @@ function App() {
   const handleRegisterSuccess = () => {
     setCurrentView('login'); // After registering, go to login
   };
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // --- RENDER ---
   return (
@@ -109,7 +111,7 @@ function App() {
         )}
 
         {/* ADMIN VIEW */}
-        {currentView === 'admin' && isAuthenticated && (
+        {currentView === 'admin' && isAdmin && (
           <AdminDashboard />
         )}
 

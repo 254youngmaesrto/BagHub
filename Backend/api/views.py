@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.response import status
+from rest_framework.views import authenticate
+from rest_framework.authotoken.models import Token
+
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.utils import timezone
@@ -18,6 +20,20 @@ class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'admin'
 
+class CustomLoginView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        user = authenticate(username=username, password=password)
+        if user:
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'username': user.username,
+                'is_admin': user.is_staff  # Returns True ONLY for actual admins
+            })
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]
@@ -102,7 +118,7 @@ class CheckoutView(APIView):
     
 
 class RegisterView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = 
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')

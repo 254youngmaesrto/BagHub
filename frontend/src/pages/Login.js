@@ -27,6 +27,7 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
       // 3. Tell the main App we are logged in
       onLogin(); 
 
+
     } catch (err) {
         console.error('Login error:', err);
       // If login fails (wrong password, etc.)
@@ -87,12 +88,12 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
       </div>
     </div>
   );
-};
-
-export default Login;
-<p style={{ marginTop: '15px', textAlign: 'center' }}>
+  <p style={{ marginTop: '15px', textAlign: 'center' }}>
   Don't have an account?{' '}
   <a href="#" onClick={(e) => { e.preventDefault(); if (onSwitchToRegister) onSwitchToRegister(); }} style={{ color: '#007bff', cursor: 'pointer' }}>
     Sign Up here
   </a>
 </p>
+};
+
+export default Login;

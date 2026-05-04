@@ -1,78 +1,47 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 
-const Register = () => {
-    const [formData, setFormData] = useState({
-        username: '',
-        email: '',
-        password: ''
-    });
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
+// Accept the props from App.js
+const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
-            await api.post('/register/', formData);
+            // Call your register endpoint
+            await api.post('/register/', { username, email, password });
             alert('Registration successful! Please login.');
-            // Call the onLogin prop to switch to login view
-            if (window.onRegisterSuccess) {
-                window.onRegisterSuccess();
-            }
+            onRegisterSuccess(); // Switch view to Login
         } catch (error) {
-            alert('Registration failed. Please try again.');
+            alert('Registration failed.');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
             <h2>Sign Up</h2>
-            <p>Create an account to start shopping</p>
             <form onSubmit={handleSubmit}>
-                <input 
-                    type="text" 
-                    name="username"
-                    placeholder="Username" 
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                />
-                <input 
-                    type="email" 
-                    name="email"
-                    placeholder="Email" 
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                />
-                <input 
-                    type="password" 
-                    name="password"
-                    placeholder="Password" 
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    style={{ width: '100%', padding: '10px', marginBottom: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                />
-                <button 
-                    type="submit" 
-                    style={{ width: '100%', padding: '12px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', fontSize: '16px', cursor: 'pointer' }}
-                >
-                    Create Account
+                <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required style={{ width: '100%', padding: '10px', marginBottom: '10px' }} />
+                <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ width: '100%', padding: '10px', marginBottom: '10px' }} />
+                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ width: '100%', padding: '10px', marginBottom: '10px' }} />
+                <button type="submit" disabled={loading} style={{ width: '100%', padding: '10px', backgroundColor: '#28a745', color: 'white', border: 'none' }}>
+                    {loading ? 'Creating...' : 'Create Account'}
                 </button>
             </form>
+            {/* Link to Login */}
             <p style={{ marginTop: '15px' }}>
-                Already have an account? <a href="#" onClick={() => window.onRegisterSuccess && window.onRegisterSuccess()} style={{ color: '#007bff' }}>Login here</a>
+                Already have an account?{' '}
+                <a href="/login" onClick={(e) => { e.preventDefault(); if (onSwitchToLogin) onSwitchToLogin(); }} style={{ color: '#007bff', cursor: 'pointer' }}>
+                    Login here
+                </a>
             </p>
         </div>
     );
 };
-
 export default Register;

@@ -3,6 +3,15 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views
 from .views import ProductViewSet, CheckoutView, AdminPaymentVerificationView, get_my_receipt
 from .views import create_admin_user
+from django.urls import path
+from .views import RegisterView, CheckoutView  # Add RegisterView to imports
+
+urlpatterns = [
+    path('register/', RegisterView.as_view(), name='register'),  # ADD THIS LINE
+    path('checkout/', CheckoutView.as_view(), name='checkout'),
+    path('api-token-auth/', ...),  
+]
+
 
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')

@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import api from '../api/axios';
 
 const Checkout = ({ product, onComplete }) => {
-  
+const [processing, _setProcessing] = useState(false);
+const [paid, _setPaid] = useState(false);
+const [receiptData, _setReceiptData] = useState(null);
   const handlePayment = async () => {
     try {
         const token = localStorage.getItem('token');
@@ -15,7 +17,7 @@ const Checkout = ({ product, onComplete }) => {
         }
         
         // Your existing payment code here...
-        const response = await api.post('/checkout/', { /* your data */ });
+        await api.post('/checkout/', { /* your data */ });
         
         // Success handling...
         

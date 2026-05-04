@@ -7,21 +7,31 @@ const Checkout = ({ product, onComplete }) => {
   const [receiptData, setReceiptData] = useState(null);
 
   const handlePayment = async () => {
-    setProcessing(true);
     try {
-      const response = await api.post('checkout/', {
-        product_id: product.id
-      });
-      
-      setPaid(true);
-      setReceiptData(response.data);
+        const token = localStorage.getItem('token');
+        
+        // Check if user is logged in BEFORE trying to pay
+        if (!token) {
+            alert('Please login to proceed with payment');
+            window.location.href = '/login'; // Redirect to login page
+            return;
+        }
+        
+        // Your existing payment code here...
+        const response = await api.post('/checkout/', { /* your data */ });
+        
+        // Success handling...
+        
     } catch (error) {
-      console.error("Payment error:", error);
-      alert("Payment failed. Please try again.");
-    } finally {
-      setProcessing(false);
+        // Check if error is "not authenticated"
+        if (error.response && error.response.status === 403) {
+            alert('Please login to proceed with payment');
+            window.location.href = '/login';
+        } else {
+            alert('Payment failed. Please try again.');
+        }
     }
-  };
+};
 
   if (paid && receiptData) {
     return (

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
 
-// Accept the props from App.js
 const Login = ({ onLogin, onSwitchToRegister }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -13,22 +12,21 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         setError('');
         setLoading(true);
         try {
-        const response = await api.post('/api-token-auth/', { username, password });
-        
-        localStorage.setItem('token', response.data.token);
-        
-        // Pass the admin status to App.js
-        if (onLogin) {
-            onLogin(response.data.is_admin); // <-- Pass true/false
-        }
-    } catch (err) {
-        setError('Invalid username or password.');
-    } finally {
-        setLoading(false);
-    }
+            const response = await api.post('/api-token-auth/', { username, password });
+            localStorage.setItem('token', response.data.token);
+            
+            // Pass the 'is_admin' status from backend to App.js
+            if (onLogin) {
+                onLogin(response.data.is_admin);
+            }
+        } catch (err) {
+            setError('Invalid username or password.');
+        } finally {
+            setLoading(false);
         }
     };
 
+    // The return statement MUST be inside the component function
     return (
         <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
             <h2>Login</h2>
@@ -40,7 +38,6 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
                     {loading ? 'Logging in...' : 'Login'}
                 </button>
             </form>
-            {/* Link to Register */}
             <p style={{ marginTop: '15px' }}>
                 Don't have an account?{' '}
                 <a href="/register" onClick={(e) => { e.preventDefault(); if (onSwitchToRegister) onSwitchToRegister(); }} style={{ color: '#007bff', cursor: 'pointer' }}>
@@ -50,4 +47,5 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         </div>
     );
 };
+
 export default Login;

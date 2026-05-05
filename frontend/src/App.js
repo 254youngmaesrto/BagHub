@@ -5,61 +5,53 @@ import CustomerHome from './pages/CustomerHome';
 import Checkout from './pages/Checkout';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
-import Register from './pages/Register'; // <-- Added Register import
+import Register from './pages/Register';
 
 function App() {
   // --- STATE ---
   const [currentView, setCurrentView] = useState('customer');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+  const [isAdmin, setIsAdmin] = useState(false); // State to track if user is admin
 
   // --- 1. CHECK LOGIN ON STARTUP ---
   useEffect(() => {
     const token = localStorage.getItem('token');
+    // Note: We aren't checking is_admin here because we don't have it stored in localStorage.
+    // We rely on the login function to set it.
     if (token) {
       setIsAuthenticated(true);
     }
   }, []);
 
   // --- 2. LOGIN HANDLER ---
-  const handleLogin = () => {
+  // This function receives 'userIsAdmin' (true/false) from Login.js
+  const handleLogin = (userIsAdmin) => {
     setIsAuthenticated(true);
-    setIsAdmin(userIsAdmin || false); // Store admin status
-    setCurrentView('customer'); // Go back to shopping after login
+    setIsAdmin(userIsAdmin); // Set the admin state
+    setCurrentView('customer');
   };
 
   // --- 3. LOGOUT HANDLER ---
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
+    setIsAdmin(false); // Reset admin status
     setCurrentView('customer');
   };
 
   // --- 4. NAVIGATION LOGIC ---
   const switchToAdmin = () => {
-    if (isAdmin) { // Only allow if actually an admin
-        setCurrentView('admin');
+    if (isAdmin) {
+      setCurrentView('admin');
     } else {
-        alert('Access Denied: You do not have admin privileges.');
+      alert('Access Denied: You do not have admin privileges.');
     }
   };
 
-  // --- 5. NEW: Handle "Go to Login" from Checkout ---
-  const goToLogin = () => {
-    setCurrentView('login');
-  };
-
-  // --- 6. NEW: Handle "Go to Register" from Checkout ---
-  const goToRegister = () => {
-    setCurrentView('register');
-  };
-
-  // --- 7. NEW: Handle successful registration ---
-  const handleRegisterSuccess = () => {
-    setCurrentView('login'); // After registering, go to login
-  };
-  const [isAdmin, setIsAdmin] = useState(false);
+  // --- 5. NAVIGATION HELPERS ---
+  const goToLogin = () => setCurrentView('login');
+  const goToRegister = () => setCurrentView('register');
 
   // --- RENDER ---
   return (
@@ -99,19 +91,19 @@ function App() {
         {currentView === 'login' && (
           <Login 
             onLogin={handleLogin} 
-            onSwitchToRegister={goToRegister} // Allow switching to register from login
+            onSwitchToRegister={goToRegister} 
           />
         )}
 
         {/* REGISTER VIEW */}
         {currentView === 'register' && (
           <Register 
-            onRegisterSuccess={handleRegisterSuccess}
-            onSwitchToLogin={goToLogin} // Allow switching to login from register
+            onRegisterSuccess={goToLogin}
+            onSwitchToLogin={goToLogin} 
           />
         )}
 
-        {/* ADMIN VIEW */}
+        {/* ADMIN VIEW - ONLY SHOW IF isAdmin IS TRUE */}
         {currentView === 'admin' && isAdmin && (
           <AdminDashboard />
         )}
@@ -134,8 +126,8 @@ function App() {
               setSelectedProduct(null); 
               setCurrentView('customer'); 
             }}
-            onGoToLogin={goToLogin}      // <-- Pass login handler
-            onGoToRegister={goToRegister} // <-- Pass register handler
+            onGoToLogin={goToLogin}
+            onGoToRegister={goToRegister}
           />
         )}
         

@@ -1,6 +1,8 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken import views as auth_views
+from .views import ProductViewSet, CustomLoginView, RegisterView, CheckoutView, AdminPaymentVerificationView, get_my_receipt, create_admin_user
+
 
 # 👇 THIS LINE IS THE FIX: Make sure CustomLoginView is here!
 from .views import (
@@ -36,4 +38,5 @@ urlpatterns = [
     
     # 🛠️ Dev/Admin Utilities
     path('create-admin/', create_admin_user, name='create-admin'),
+     path('', include(router.urls)),  # This adds /api/products/
 ]

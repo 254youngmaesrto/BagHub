@@ -12,7 +12,7 @@ function App() {
   const [currentView, setCurrentView] = useState('customer');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // State to track if user is admin
+  const [_isAdmin, setIsAdmin] = useState(false); // State to track if user is admin
 
   // --- 1. CHECK LOGIN ON STARTUP ---
   useEffect(() => {

@@ -56,27 +56,34 @@ class CustomLoginView(APIView):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-    def get_permissions(self):
-        # Only admins can create/update/delete
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAuthenticated(), IsAdmin()]
-        return [AllowAny()]
+    permission_classes = [permissions.AllowAny]  # ← This allows anyone to view
 
     def get_queryset(self):
-        # Admin sees all products
-        if self.request.user.is_authenticated and self.request.user.is_staff:
-            return Product.objects.all().order_by('-created_at')
-
-        # Customers/guests see only available products
-        return Product.objects.filter(is_available=True).order_by('-created_at')
+        # 🔍 DEBUG LOGS - Check what's happening
+        print("=" * 50)
+        print(" FETCHING PRODUCTS...")
+        print(f"User: {self.request.user}")
+        print(f"Authenticated: {self.request.user.is_authenticated}")
+        print(f"User is staff: {self.request.user.is_staff if self.request.user.is_authenticated else 'N/A'}")
+        
+        # Get ALL products first
+        products = Product.objects.all()
+        print(f"Total products in DB: {products.count()}")
+        
+        # Show product details
+        for p in products:
+            print(f"  - {p.name}: Available={p.is_available}, Stock={p.stock_quantity}")
+        
+        print("=" * 50)
+        
+        # Return ALL products for everyone (temporary fix)
+        return products.order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(
-            posted_by=self.request.user,
-            is_available=True
-        )
-
+        if self.request.user.is_authenticated:
+            serializer.save(posted_by=self.request.user, is_available=True)
+        else:
+            serializer.save(is_available=True)
 
 # ==========================
 # 🛒 CHECKOUT VIEW

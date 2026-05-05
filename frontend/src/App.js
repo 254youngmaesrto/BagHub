@@ -11,7 +11,7 @@ function App() {
   // --- STATE ---
   const [currentView, setCurrentView] = useState('customer');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [_isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // ✅ KEEP THIS
   const [isAdmin, setIsAdmin] = useState(false);
 
   // --- 1. CHECK LOGIN ON STARTUP ---
@@ -24,7 +24,7 @@ function App() {
 
   // --- 2. LOGIN HANDLER ---
   const handleLogin = (userIsAdmin) => {
-    setIsAuthenticated(true);
+    setIsAuthenticated(true);  // ✅ SET THIS
     setIsAdmin(userIsAdmin || false);
     setCurrentView('customer');
   };
@@ -32,14 +32,14 @@ function App() {
   // --- 3. LOGOUT HANDLER ---
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setIsAuthenticated(false);
+    setIsAuthenticated(false); // ✅ SET THIS
     setIsAdmin(false);
     setCurrentView('customer');
   };
 
   // --- 4. NAVIGATION LOGIC ---
   const switchToAdmin = () => {
-    if (isAdmin) {
+    if (isAuthenticated && isAdmin) { // ✅ CHECK BOTH
       setCurrentView('admin');
     } else {
       alert('Access Denied: You do not have admin privileges.');
@@ -100,10 +100,10 @@ function App() {
           />
         )}
 
-        {/* ADMIN VIEW */}
+        {/* ADMIN VIEW - REQUIRE BOTH AUTH AND ADMIN STATUS */}
         {currentView === 'admin' && isAuthenticated && isAdmin && (
-  <AdminDashboard />
-)}
+          <AdminDashboard />
+        )}
 
         {/* CUSTOMER HOME VIEW */}
         {currentView === 'customer' && !selectedProduct && (

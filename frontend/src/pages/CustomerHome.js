@@ -9,7 +9,7 @@ const CustomerHome = ({ onCheckout }) => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await api.get('products/');
+      const response = await api.get('/products/');
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);

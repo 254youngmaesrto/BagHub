@@ -1,26 +1,27 @@
 import axios from 'axios';
 
+// Use environment variable for production, fallback to localhost for development
+const API_URL = process.env.REACT_APP_API_URL || 'https://baghub-backend.onrender.com/api/';
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api/',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: API_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
 
-// Add a request interceptor to automatically attach the token
+// Request interceptor to attach token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    console.log('Token from storage:', token);
-    if (token) {
-      config.headers.Authorization = `Token ${token}`;
-      console.log('Authorization header set:', config.headers.Authorization);
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Token ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
 );
 
 export default api;

@@ -56,34 +56,23 @@ class CustomLoginView(APIView):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [permissions.AllowAny]  # ← This allows anyone to view
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        # 🔍 DEBUG LOGS - Check what's happening
-        print("=" * 50)
-        print(" FETCHING PRODUCTS...")
-        print(f"User: {self.request.user}")
-        print(f"Authenticated: {self.request.user.is_authenticated}")
-        print(f"User is staff: {self.request.user.is_staff if self.request.user.is_authenticated else 'N/A'}")
+        # 1. Start with the base query: Only show available products
+        queryset = Product.objects.filter(is_available=True).order_by('-created_at')
         
-        # Get ALL products first
-        products = Product.objects.all()
-        print(f"Total products in DB: {products.count()}")
-        
-        # Show product details
-        for p in products:
-            print(f"  - {p.name}: Available={p.is_available}, Stock={p.stock_quantity}")
-        
-        print("=" * 50)
-        
-        # Return ALL products for everyone (temporary fix)
-        return products.order_by('-created_at')
-
-    def perform_create(self, serializer):
+        # 2. If user is logged in, check if they are Admin
         if self.request.user.is_authenticated:
-            serializer.save(posted_by=self.request.user, is_available=True)
-        else:
-            serializer.save(is_available=True)
+            # Safely check for 'is_staff' OR 'role' field (whichever your model uses)
+            is_admin = getattr(self.request.user, 'is_staff', False) or \
+                       getattr(self.request.user, 'role', None) == 'admin'
+            
+            # If Admin, show ALL products (including out of stock)
+            if is_admin:
+                queryset = Product.objects.all().order_by('-created_at')
+        
+        return queryset
 
 # ==========================
 # 🛒 CHECKOUT VIEW

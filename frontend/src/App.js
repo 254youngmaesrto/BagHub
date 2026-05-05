@@ -38,7 +38,7 @@ function App() {
   };
 
   // --- 4. NAVIGATION LOGIC ---
-  const switchToAdmin = () => {
+  const _switchToAdmin = () => {
     if (isAuthenticated && isAdmin) { // ✅ CHECK BOTH
       setCurrentView('admin');
     } else {

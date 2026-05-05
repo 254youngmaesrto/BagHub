@@ -139,6 +139,7 @@ function App() {
         {/* CUSTOMER HOME (GUEST + USERS) */}
         {currentView === 'customer' && !selectedProduct && (
           <CustomerHome
+          isAuthenticated={isAuthenticated} 
             onCheckout={(product) => {
               // 🔒 REQUIRE LOGIN BEFORE CHECKOUT
               if (!isAuthenticated) {

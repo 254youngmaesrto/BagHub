@@ -101,9 +101,9 @@ function App() {
         )}
 
         {/* ADMIN VIEW */}
-        {currentView === 'admin' && isAdmin && (
-          <AdminDashboard />
-        )}
+        {currentView === 'admin' && isAuthenticated && isAdmin && (
+  <AdminDashboard />
+)}
 
         {/* CUSTOMER HOME VIEW */}
         {currentView === 'customer' && !selectedProduct && (

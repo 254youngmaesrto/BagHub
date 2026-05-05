@@ -54,23 +54,36 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       
-      {/* --- NAVIGATION BAR --- */}
+            {/* --- NAVIGATION BAR --- */}
       <nav className="bg-blue-700 text-white p-4 shadow-lg flex justify-between items-center">
         <div className="text-2xl font-bold cursor-pointer" onClick={() => setCurrentView('customer')}>
           🛍️ BagHub
         </div>
         
         <div className="flex gap-4 items-center">
-          {currentView === 'customer' && (
+          
+          {/* 👇 BUTTON: Show if NOT Logged In */}
+          {!isAuthenticated && (
             <button 
-              onClick={switchToAdmin}
-              className="bg-white text-blue-700 px-4 py-2 rounded font-bold hover:bg-gray-100 transition"
+              onClick={() => setCurrentView('login')}
+              className="bg-green-500 text-white px-4 py-2 rounded font-bold hover:bg-green-600 transition"
             >
-              Switch to Admin
+              Login
             </button>
           )}
 
-          {currentView === 'admin' && (
+          {/* 👇 BUTTON: Show if Logged In as ADMIN */}
+          {isAuthenticated && isAdmin && (
+            <button 
+              onClick={() => setCurrentView('admin')}
+              className="bg-yellow-500 text-white px-4 py-2 rounded font-bold hover:bg-yellow-600 transition"
+            >
+              Admin Dashboard
+            </button>
+          )}
+
+          {/* 👇 BUTTON: Show if Logged In */}
+          {isAuthenticated && (
             <button 
               onClick={handleLogout}
               className="bg-red-500 text-white px-4 py-2 rounded font-bold hover:bg-red-600 transition"

@@ -1,20 +1,19 @@
 from rest_framework import viewsets, status, permissions
-from django.contrib.auth.models import User
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import status
-from rest_framework.views import authenticate
-from rest_framework.authotoken.models import Token
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authtoken.models import Token
 
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate  # <--- FIXED: Moved from rest_framework
 from django.db import transaction
 from django.utils import timezone
+
 import uuid
-from .models import User, Product, Order, Receipt, Payment
-from .serializers import ProductSerializer, OrderSerializer, ReceiptSerializer, PaymentSerializer
+
+from .models import Product, Order, Receipt, Payment
+from .serializers import ProductSerializer, OrderSerializer, ReceiptSerializer
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):

@@ -1,85 +1,172 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 
-const CustomerHome = ({ onCheckout, isAuthenticated }) => {
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+const CustomerHome = ({ onCheckout }) => {
+    const [products, setProducts] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await api.get('/products/');
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      setProducts([]); // 🔒 prevent stale state
-    } finally {
-      setLoading(false);
-    }
-  };
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await api.get('/products/');
+                setProducts(response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+        
+        fetchProducts();
+    }, []);
 
-  // 🔥 FIX: Refetch when login state changes
-  useEffect(() => {
-    fetchProducts();
-  }, [isAuthenticated]);
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+    return (
+        <div className="customer-home" style={{ padding: '20px' }}>
+            {/* Header */}
+            <div style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                padding: '40px', 
+                borderRadius: '10px', 
+                marginBottom: '30px',
+                textAlign: 'center',
+                color: 'white'
+            }}>
+                <h1>BagHub Catalog</h1>
+                <p>Premium bags for every occasion. Shop with confidence.</p>
+            </div>
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-12 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-3">🛍️ BagHub Catalog</h1>
-          <p className="text-blue-100 text-lg">Premium bags for every occasion. Shop with confidence.</p>
+            {/* Search Bar */}
+            <div style={{ 
+                maxWidth: '800px', 
+                margin: '0 auto 30px',
+                padding: '15px',
+                border: '1px solid #ddd',
+                borderRadius: '5px'
+            }}>
+                <input
+                    type="text"
+                    placeholder="Search for a bag by name..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '10px',
+                        fontSize: '16px',
+                        border: 'none',
+                        outline: 'none'
+                    }}
+                />
+            </div>
+
+            {/* Products Grid */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                gap: '20px',
+                maxWidth: '1200px',
+                margin: '0 auto'
+            }}>
+                {filteredProducts.length === 0 ? (
+                    <div style={{ 
+                        gridColumn: '1 / -1', 
+                        textAlign: 'center', 
+                        padding: '40px',
+                        color: '#999'
+                    }}>
+                        <h2>No bags found</h2>
+                        <p>Try adjusting your search term</p>
+                    </div>
+                ) : (
+                    filteredProducts.map(product => (
+                        <div key={product.id} style={{
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            padding: '20px',
+                            backgroundColor: 'white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}>
+                            {product.image ? (
+                                <img 
+                                    src={product.image} 
+                                    alt={product.name}
+                                    style={{
+                                        width: '100%',
+                                        height: '200px',
+                                        objectFit: 'cover',
+                                        borderRadius: '5px',
+                                        marginBottom: '15px'
+                                    }}
+                                />
+                            ) : (
+                                <div style={{
+                                    width: '100%',
+                                    height: '200px',
+                                    backgroundColor: '#f5f5f5',
+                                    borderRadius: '5px',
+                                    marginBottom: '15px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#999'
+                                }}>
+                                    No Image
+                                </div>
+                            )}
+                            
+                            <h3 style={{ margin: '0 0 10px 0' }}>{product.name}</h3>
+                            <p style={{ color: '#666', margin: '5px 0' }}>{product.description}</p>
+                            <p style={{ 
+                                fontSize: '24px', 
+                                fontWeight: 'bold', 
+                                color: '#667eea',
+                                margin: '10px 0'
+                            }}>
+                                KSH {product.price}
+                            </p>
+                            <p style={{ 
+                                color: product.stock_quantity > 0 ? 'green' : 'red',
+                                fontSize: '14px',
+                                margin: '10px 0'
+                            }}>
+                                {product.stock_quantity > 0 
+                                    ? `${product.stock_quantity} left in stock`
+                                    : 'Out of stock'
+                                }
+                            </p>
+                            
+                            <button
+                                onClick={() => onCheckout(product)}
+                                disabled={!product.is_available || product.stock_quantity === 0}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: product.is_available && product.stock_quantity > 0 
+                                        ? '#28a745' 
+                                        : '#ccc',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '5px',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: product.is_available && product.stock_quantity > 0 
+                                        ? 'pointer' 
+                                        : 'not-allowed',
+                                    marginTop: '10px'
+                                }}
+                            >
+                                {product.is_available && product.stock_quantity > 0 
+                                    ? 'Pay Now' 
+                                    : 'Out of Stock'
+                                }
+                            </button>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
-      </div>
-
-      {/* Search */}
-      <div className="max-w-5xl mx-auto px-4 -mt-6">
-        <div className="bg-white p-4 rounded-2xl shadow-lg border">
-          <input 
-            type="text" 
-            placeholder="🔍 Search for a bag..."
-            className="w-full p-4 border rounded-xl"
-            value={search} 
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Products */}
-      <div className="max-w-5xl mx-auto px-4 py-10">
-        {loading ? (
-          <p className="text-center text-gray-500">Loading products...</p>
-        ) : filteredProducts.length === 0 ? (
-          <p className="text-center text-gray-500">No bags found</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {filteredProducts.map(p => (
-              <div key={p.id} className="bg-white p-4 rounded-xl shadow">
-                <h2 className="font-bold text-lg">{p.name}</h2>
-                <p className="text-blue-600 font-bold">
-                  KSH {Number(p.price).toLocaleString()}
-                </p>
-
-                <button 
-                  onClick={() => onCheckout(p)}
-                  disabled={!p.is_available}
-                  className="mt-3 w-full bg-blue-600 text-white py-2 rounded"
-                >
-                  {p.is_available ? 'Purchase Now' : 'Sold Out'}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    );
 };
 
 export default CustomerHome;

@@ -116,26 +116,38 @@ class CheckoutView(APIView):
             "receipt_number": receipt_number
         }, status=status.HTTP_201_CREATED)
     
+    
+
+# Use get_user_model() instead of importing User directly
+User = get_user_model()
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    
     def post(self, request):
         username = request.data.get('username')
         email = request.data.get('email')
         password = request.data.get('password')
         
-        # Check if user already exists
+        # Validate
+        if not username or not password:
+            return Response({'error': 'Username and password required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if exists
         if User.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if User.objects.filter(email=email).exists():
-            return Response({'error': 'Email already exists'}, status=status.HTTP_400_BAD_REQUEST)
-        
         # Create user
-        user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        
-        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(f"Registration error: {e}")  # This will show in Render logs
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AdminPaymentVerificationView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsAdmin]

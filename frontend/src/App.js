@@ -11,24 +11,21 @@ function App() {
   // --- STATE ---
   const [currentView, setCurrentView] = useState('customer');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [_isAdmin, setIsAdmin] = useState(false); // State to track if user is admin
+  const [_isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // --- 1. CHECK LOGIN ON STARTUP ---
   useEffect(() => {
     const token = localStorage.getItem('token');
-    // Note: We aren't checking is_admin here because we don't have it stored in localStorage.
-    // We rely on the login function to set it.
     if (token) {
       setIsAuthenticated(true);
     }
   }, []);
 
   // --- 2. LOGIN HANDLER ---
-  // This function receives 'userIsAdmin' (true/false) from Login.js
   const handleLogin = (userIsAdmin) => {
     setIsAuthenticated(true);
-    setIsAdmin(userIsAdmin); // Set the admin state
+    setIsAdmin(userIsAdmin || false);
     setCurrentView('customer');
   };
 
@@ -36,7 +33,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
-    setIsAdmin(false); // Reset admin status
+    setIsAdmin(false);
     setCurrentView('customer');
   };
 
@@ -103,7 +100,7 @@ function App() {
           />
         )}
 
-        {/* ADMIN VIEW - ONLY SHOW IF isAdmin IS TRUE */}
+        {/* ADMIN VIEW */}
         {currentView === 'admin' && isAdmin && (
           <AdminDashboard />
         )}

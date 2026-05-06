@@ -14,7 +14,7 @@ const Payment = ({ order, onComplete }) => {
         setSuccess('');
 
         try {
-            const response = await api.post('/stk-push/', {
+             await api.post('/stk-push/', {
                 phone_number: phoneNumber,
                 amount: order.total_amount,
                 order_id: order.id

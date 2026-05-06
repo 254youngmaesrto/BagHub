@@ -4,8 +4,8 @@ import Payment from './Payment';
 
 // Accept the props from App.js
 const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [phoneNumber, _setPhoneNumber] = useState('');
+    const [loading, _setLoading] = useState(false);
     const isAuthenticated = !!localStorage.getItem('token');
     
     
@@ -42,7 +42,7 @@ const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
     }
 
     // --- SCENARIO B: USER IS LOGGED IN (SHOW PAYMENT FORM) ---
-    const handlePayment = async (e) => {
+    const _handlePayment = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {

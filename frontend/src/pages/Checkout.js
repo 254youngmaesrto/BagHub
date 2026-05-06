@@ -6,6 +6,8 @@ import Payment from './Payment';
 const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [loading, setLoading] = useState(false);
+    const isAuthenticated = !!localStorage.getItem('token');
+    
     
     // 1. CHECK IF USER IS LOGGED IN
     const token = localStorage.getItem('token');

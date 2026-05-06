@@ -44,7 +44,7 @@ const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
     // --- SCENARIO B: USER IS LOGGED IN (SHOW PAYMENT FORM) ---
     const _handlePayment = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        _setLoading(true);
         try {
             await api.post('/checkout/', {
                 phone_number: phoneNumber,

@@ -30,8 +30,8 @@ function App() {
     setIsAuthenticated(true);
     setIsAdmin(userIsAdmin || false);
 
-    // store in localStorage
-    localStorage.setItem('token', 'dummy-token'); // replace with real token later
+    // ❌ REMOVED dummy token (this was breaking everything)
+
     localStorage.setItem('isAdmin', userIsAdmin);
 
     // redirect based on role
@@ -80,7 +80,6 @@ function App() {
 
         <div className="flex gap-4 items-center">
 
-          {/* Guest */}
           {!isAuthenticated && (
             <button
               onClick={goToLogin}
@@ -90,7 +89,6 @@ function App() {
             </button>
           )}
 
-          {/* Admin */}
           {isAuthenticated && isAdmin && (
             <button
               onClick={() => setCurrentView('admin')}
@@ -100,7 +98,6 @@ function App() {
             </button>
           )}
 
-          {/* Logged in */}
           {isAuthenticated && (
             <button
               onClick={handleLogout}
@@ -115,7 +112,6 @@ function App() {
       {/* --- MAIN CONTENT --- */}
       <main className="p-4">
 
-        {/* LOGIN */}
         {currentView === 'login' && (
           <Login
             onLogin={handleLogin}
@@ -123,7 +119,6 @@ function App() {
           />
         )}
 
-        {/* REGISTER */}
         {currentView === 'register' && (
           <Register
             onRegisterSuccess={goToLogin}
@@ -131,17 +126,14 @@ function App() {
           />
         )}
 
-        {/* ADMIN */}
         {currentView === 'admin' && isAuthenticated && isAdmin && (
           <AdminDashboard />
         )}
 
-        {/* CUSTOMER HOME (GUEST + USERS) */}
         {currentView === 'customer' && !selectedProduct && (
           <CustomerHome
-          isAuthenticated={isAuthenticated} 
+            isAuthenticated={isAuthenticated}
             onCheckout={(product) => {
-              // 🔒 REQUIRE LOGIN BEFORE CHECKOUT
               if (!isAuthenticated) {
                 setCurrentView('login');
                 return;
@@ -153,7 +145,6 @@ function App() {
           />
         )}
 
-        {/* CHECKOUT (ONLY AUTH USERS) */}
         {currentView === 'checkout' && selectedProduct && isAuthenticated && (
           <Checkout
             product={selectedProduct}

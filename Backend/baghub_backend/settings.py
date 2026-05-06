@@ -184,3 +184,9 @@ if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+MPESA_CONSUMER_KEY = "your_consumer_key"
+MPESA_CONSUMER_SECRET = "your_consumer_secret"
+MPESA_SHORTCODE = "174379"  # sandbox
+MPESA_PASSKEY = "your_passkey"
+MPESA_CALLBACK_URL = "https://your-backend-url/api/mpesa/callback/"

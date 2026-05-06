@@ -1,5 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from .views import STKPushView, mpesa_callback
 
 from .views import (
     ProductViewSet,
@@ -31,4 +32,7 @@ urlpatterns = [
 
     # Dev
     path('create-admin/', create_admin_user, name='create-admin'),
+
+    path('mpesa/stk-push/', STKPushView.as_view()),
+    path('mpesa/callback/', mpesa_callback),
 ]

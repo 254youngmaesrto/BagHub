@@ -14,6 +14,24 @@ import uuid
 from .models import Product, Order, Receipt, Payment
 from .serializers import ProductSerializer, OrderSerializer, ReceiptSerializer
 
+import requests
+import base64
+from datetime import datetime
+from django.conf import settings
+
+
+def get_access_token():
+    url = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+    response = requests.get(url, auth=(settings.MPESA_CONSUMER_KEY, settings.MPESA_CONSUMER_SECRET))
+    return response.json().get("access_token")
+
+
+def generate_password():
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    data_to_encode = settings.MPESA_SHORTCODE + settings.MPESA_PASSKEY + timestamp
+    password = base64.b64encode(data_to_encode.encode()).decode()
+    return password, timestamp
+
 User = get_user_model()
 
 # ==========================
@@ -139,6 +157,40 @@ class CheckoutView(APIView):
             "order_id": order.id,
             "receipt_number": receipt_number
         }, status=status.HTTP_201_CREATED)
+
+class STKPushView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        phone = request.data.get("phone")
+        amount = request.data.get("amount")
+
+        access_token = get_access_token()
+        password, timestamp = generate_password()
+
+        url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+
+        headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+
+        payload = {
+            "BusinessShortCode": settings.MPESA_SHORTCODE,
+            "Password": password,
+            "Timestamp": timestamp,
+            "TransactionType": "CustomerPayBillOnline",
+            "Amount": int(amount),
+            "PartyA": phone,
+            "PartyB": settings.MPESA_SHORTCODE,
+            "PhoneNumber": phone,
+            "CallBackURL": settings.MPESA_CALLBACK_URL,
+            "AccountReference": "BagHub",
+            "TransactionDesc": "Bag purchase"
+        }
+
+        response = requests.post(url, json=payload, headers=headers)
+
+        return Response(response.json())
 
 
 # ==========================
@@ -296,3 +348,26 @@ def get_all_products(request):
     except Exception as e:
         print(f"❌ Error: {e}")
         return Response({'error': str(e)}, status=500)
+    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def mpesa_callback(request):
+    data = request.data
+
+    try:
+        stk = data['Body']['stkCallback']
+        result_code = stk['ResultCode']
+
+        if result_code == 0:
+            metadata = stk['CallbackMetadata']['Item']
+            mpesa_code = next(item['Value'] for item in metadata if item['Name'] == 'MpesaReceiptNumber')
+
+            print("SUCCESS:", mpesa_code)
+
+        else:
+            print("FAILED TRANSACTION")
+
+    except Exception as e:
+        print("Callback error:", e)
+
+    return Response({"status": "ok"})

@@ -23,5 +23,15 @@ api.interceptors.request.use(
         return Promise.reject(error);
     }
 );
+api.interceptors.response.use(
+  res => res,
+  err => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.reload();
+    }
+    return Promise.reject(err);
+  }
+);
 
 export default api;

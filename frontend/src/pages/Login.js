@@ -13,9 +13,14 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         setLoading(true);
         try {
             const response = await api.post('/api-token-auth/', { username, password });
+
+            // ✅ Store real token
             localStorage.setItem('token', response.data.token);
-            
-            // Pass the 'is_admin' status from backend to App.js
+
+            // ✅ FIX: store admin status (missing before)
+            localStorage.setItem('isAdmin', response.data.is_admin);
+
+            // Pass admin status to App.js
             if (onLogin) {
                 onLogin(response.data.is_admin);
             }
@@ -26,7 +31,6 @@ const Login = ({ onLogin, onSwitchToRegister }) => {
         }
     };
 
-    // The return statement MUST be inside the component function
     return (
         <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', textAlign: 'center' }}>
             <h2>Login</h2>

@@ -56,7 +56,7 @@ const Checkout = ({ product, onComplete, onGoToLogin, onGoToRegister }) => {
         } catch (error) {
             alert('Payment failed.');
         } finally {
-            setLoading(false);
+            _setLoading(false);
         }
     };
 

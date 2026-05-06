@@ -1,45 +1,34 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework.authtoken import views as auth_views
-from .views import ProductViewSet, CustomLoginView, RegisterView, CheckoutView, AdminPaymentVerificationView, get_my_receipt, create_admin_user
 
-
-# 👇 THIS LINE IS THE FIX: Make sure CustomLoginView is here!
 from .views import (
-    ProductViewSet, 
-    CheckoutView, 
-    AdminPaymentVerificationView, 
-    get_my_receipt, 
-    create_admin_user, 
-    RegisterView, 
+    ProductViewSet,
+    CheckoutView,
+    AdminPaymentVerificationView,
+    get_my_receipt,
+    create_admin_user,
+    RegisterView,
     CustomLoginView,
-    get_all_products  # ← ADD THIS IMPORT
 )
 
-
-# Create router
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
-     path('products/', get_all_products, name='get-all-products'),
-    # Include Router URLs
+    # Products (handled ONLY by router)
     path('', include(router.urls)),
-    
-    # 🔐 Authentication (Using our new CustomLoginView)
+
+    # Auth
     path('api-token-auth/', CustomLoginView.as_view(), name='api-token-auth'),
-    
-    # 📝 User Registration
     path('register/', RegisterView.as_view(), name='register'),
-    
-    # 🛒 Checkout
+
+    # Checkout
     path('checkout/', CheckoutView.as_view(), name='checkout'),
-    
-    # 💼 Admin & Receipts
+
+    # Admin & receipts
     path('admin/verify-payment/', AdminPaymentVerificationView.as_view(), name='verify-payment'),
     path('receipt/', get_my_receipt, name='my-receipt'),
-    
-    # 🛠️ Dev/Admin Utilities
+
+    # Dev
     path('create-admin/', create_admin_user, name='create-admin'),
-     path('', include(router.urls)),  # This adds /api/products/
 ]

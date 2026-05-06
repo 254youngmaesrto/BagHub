@@ -277,3 +277,22 @@ def create_admin_user(request):
     return Response({
         'message': f'Admin {username} created successfully'
     })
+# ==========================================
+# PUBLIC PRODUCTS ENDPOINT (NO AUTH REQUIRED)
+# ==========================================
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_all_products(request):
+    """Public endpoint - anyone can access"""
+    try:
+        products = Product.objects.filter(is_available=True).order_by('-created_at')
+        serializer = ProductSerializer(products, many=True)
+        print(f"✅ Returning {products.count()} products")
+        return Response(serializer.data)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return Response({'error': str(e)}, status=500)

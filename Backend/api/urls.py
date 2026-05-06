@@ -12,14 +12,17 @@ from .views import (
     get_my_receipt, 
     create_admin_user, 
     RegisterView, 
-    CustomLoginView  # <--- ADD THIS!
+    CustomLoginView,
+    get_all_products  # ← ADD THIS IMPORT
 )
+
 
 # Create router
 router = DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
+     path('products/', get_all_products, name='get-all-products'),
     # Include Router URLs
     path('', include(router.urls)),
     

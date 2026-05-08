@@ -195,6 +195,8 @@ function App() {
                 setCartItems(items);
                 setSelectedProduct(items[0]); // first item for checkout compatibility
                 setCurrentView('checkout');
+
+                setCartView(false);
               }
             }}
             onContinueShopping={() => setCurrentView('customer')}

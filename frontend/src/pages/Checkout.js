@@ -1,8 +1,17 @@
 import React from 'react';
 
-const Checkout = ({ cart, onComplete, onGoToLogin, onGoToRegister }) => {
+const Checkout = ({ product, cart, onComplete, onGoToLogin, onGoToRegister }) => {
   const isAuthenticated = !!localStorage.getItem('token');
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const checkoutProduct = product || (cart && cart.length > 0 ? cart[0] : null);
+
+if (!checkoutProduct) {
+    return (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+            <h2>No product selected</h2>
+        </div>
+    );
+}
 
   const handleProceedToPayment = () => {
     if (isAuthenticated) {

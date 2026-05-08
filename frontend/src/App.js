@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Cart from './pages/Cart';
+import Payment from './pages/Payment';  // ✅ ADDED THIS IMPORT
 import { getCartCount, clearCart } from './utils/cart';
 
 // Import components
@@ -168,19 +169,35 @@ function App() {
 
         {/* CHECKOUT */}
         {currentView === 'checkout' && isAuthenticated && (
-  <Checkout
-    cart={cartItems}
-    product={selectedProduct || cartItems[0]}
-    onComplete={() => {
-      clearCart();
-      setSelectedProduct(null);
-      setCartItems([]);
-      setCurrentView('customer');
-    }}
-    onGoToLogin={goToLogin}
-    onGoToRegister={goToRegister}
-  />
-)}
+          <Checkout
+            cart={cartItems}
+            product={selectedProduct || cartItems[0]}
+            onComplete={() => {
+              // ✅ CHANGED: Go to payment view instead of customer
+              setCurrentView('payment');
+            }}
+            onGoToLogin={goToLogin}
+            onGoToRegister={goToRegister}
+          />
+        )}
+
+        {/* PAYMENT - ✅ ADDED THIS NEW VIEW */}
+        {currentView === 'payment' && isAuthenticated && (
+          <Payment 
+            order={{ 
+              id: Date.now(), 
+              total_amount: cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+              items: cartItems 
+            }} 
+            onComplete={() => {
+              clearCart();
+              setSelectedProduct(null);
+              setCartItems([]);
+              setCurrentView('customer');
+              alert('Payment successful! 🎉');
+            }}
+          />
+        )}
 
         {/* CART */}
         {currentView === 'cart' && (
@@ -195,8 +212,6 @@ function App() {
                 setCartItems(items);
                 setSelectedProduct(items[0]); // first item for checkout compatibility
                 setCurrentView('checkout');
-
-            
               }
             }}
             onContinueShopping={() => setCurrentView('customer')}

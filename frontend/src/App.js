@@ -13,7 +13,7 @@ function App() {
   // --- STATE ---
   const [currentView, setCurrentView] = useState('customer');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);;
   const [isAdmin, setIsAdmin] = useState(false);
   const [cartItems, setCartItems] = useState([]);
 
@@ -167,20 +167,20 @@ function App() {
         )}
 
         {/* CHECKOUT */}
-        {currentView === 'checkout' && selectedProduct && isAuthenticated && (
-          <Checkout
-            cart={cartItems}
-            product={selectedProduct}
-            onComplete={() => {
-              clearCart();
-              setSelectedProduct(null);
-              setCartItems([]);
-              setCurrentView('customer');
-            }}
-            onGoToLogin={goToLogin}
-            onGoToRegister={goToRegister}
-          />
-        )}
+        {currentView === 'checkout' && isAuthenticated && (
+  <Checkout
+    cart={cartItems}
+    product={selectedProduct || cartItems[0]}
+    onComplete={() => {
+      clearCart();
+      setSelectedProduct(null);
+      setCartItems([]);
+      setCurrentView('customer');
+    }}
+    onGoToLogin={goToLogin}
+    onGoToRegister={goToRegister}
+  />
+)}
 
         {/* CART */}
         {currentView === 'cart' && (
@@ -196,7 +196,7 @@ function App() {
                 setSelectedProduct(items[0]); // first item for checkout compatibility
                 setCurrentView('checkout');
 
-                setCartView(false);
+            
               }
             }}
             onContinueShopping={() => setCurrentView('customer')}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Cart from './pages/Cart';
-import { getCartCount } from './utils/cart';
+import { getCartCount, clearCart } from './utils/cart';
 
 // Import components
 import CustomerHome from './pages/CustomerHome';

@@ -15,11 +15,11 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [cartView, setCartView] = useState(false);
+  const [_cartView, setCartView] = useState(false);
   const [cartItems, setCartItems] = useState([]);
 
 // Helper to refresh cart UI
-const refreshCart = () => setCartItems(getCartCount());
+const _refreshCart = () => setCartItems(getCartCount());
 
   // --- CHECK LOGIN ON STARTUP ---
   useEffect(() => {

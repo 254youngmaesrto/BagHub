@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCart, removeFromCart, updateQuantity, clearCart, getCartTotal } from '../utils/cart';
+import { getCart, removeFromCart, updateQuantity,  getCartTotal } from '../utils/cart';
 
 const Cart = ({ onCheckout, onContinueShopping }) => {
   const [cart, setCart] = useState([]);

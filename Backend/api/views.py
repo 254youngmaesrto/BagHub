@@ -33,6 +33,7 @@ def get_all_products(request):
         return Response({'error': str(e)}, status=500)
 
 # IntaSend Payment Initialization
+# IntaSend Payment Initialization
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def intasend_payment(request):
@@ -41,66 +42,88 @@ def intasend_payment(request):
         order_id = request.data.get('order_id')
         phone_number = request.data.get('phone_number')
         email = request.data.get('email', 'customer@example.com')
-        
-        # ==========================================
-        # CHECK YOUR KEYS HERE!
-        # ==========================================
-        INTASEND_SECRET_KEY = "ISSecretKey_live_74e8344d-1a98-4912-835e-73a8264ef916"  
-        # ==========================================
 
+        # ==========================================
+        # FORMAT PHONE NUMBER
+        # ==========================================
+        phone_number = str(phone_number).replace("+", "").strip()
+
+        if phone_number.startswith("0"):
+            phone_number = "254" + phone_number[1:]
+
+        # ==========================================
+        # HEADERS
+        # ==========================================
         headers = {
             "Authorization": f"Bearer {INTASEND_SECRET_KEY}",
             "Content-Type": "application/json"
         }
-        
-        # IntaSend REQUIRES first_name and last_name
+
+        # ==========================================
+        # PAYLOAD
+        # ==========================================
         payload = {
-            "amount": amount,
+            "public_key": INTASEND_PUBLIC_KEY,
             "currency": "KES",
+            "amount": float(amount),
             "phone_number": phone_number,
             "email": email,
-            "narration": f"BagHub Order #{order_id}",
-            "first_name": "BagHub",       # ADDED THIS
-            "last_name": "Customer",      # ADDED THIS
-            "callback_url": "https://baghub-frontend-254.vercel.app/" 
+            "api_ref": f"BagHub-{order_id}",
+            "narration": f"Payment for BagHub Order #{order_id}"
         }
-        
+
+        # ==========================================
+        # INTASEND REQUEST
+        # ==========================================
         response = requests.post(
-            "https://payment.intasend.com/api/v1/checkout/stk_push/",
+            "https://sandbox.intasend.com/api/v1/payment/mpesa-stk-push/",
             json=payload,
             headers=headers
         )
-        
+
+        # ==========================================
+        # DEBUGGING
+        # ==========================================
+        print("STATUS CODE:", response.status_code)
+        print("RESPONSE:", response.text)
+
         response_data = response.json()
-        
-        # Log the response to help debug
-        print(f"IntaSend Response: {response_data}")
-        
-        if response.status_code == 200 or response.status_code == 201:
+
+        # ==========================================
+        # SUCCESS
+        # ==========================================
+        if response.status_code in [200, 201]:
+
             try:
-                # Try to update order, but ignore if ID doesn't exist (since we use Date.now())
-                order = Order.objects.get(id=order_id, customer=request.user)
+                order = Order.objects.get(id=order_id)
+
                 order.status = 'pending_payment'
                 order.save()
-            except:
-                pass
-            
+
+            except Exception as order_error:
+                print("ORDER ERROR:", order_error)
+
             return Response({
-                'success': True,
-                'message': 'STK Push sent. Check your phone.',
-                'data': response_data
+                "success": True,
+                "message": "STK Push sent successfully.",
+                "data": response_data
             }, status=status.HTTP_200_OK)
-        else:
-            # Return the specific error from IntaSend so you see it on frontend
-            return Response({
-                'success': False,
-                'error': response_data.get('message', 'Payment initialization failed')
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
+
+        # ==========================================
+        # FAILED
+        # ==========================================
+        return Response({
+            "success": False,
+            "error": response_data
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print("INTASEND ERROR:", str(e))
 
-
+        return Response({
+            "success": False,
+            "error": str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # IntaSend Callback (Webhook)
 @api_view(['POST'])
 @permission_classes([AllowAny])

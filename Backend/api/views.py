@@ -18,8 +18,8 @@ from .serializers import ProductSerializer, OrderSerializer, ReceiptSerializer
 # ==========================================
 # INTASEND CONFIGURATION
 # ==========================================
-INTASEND_SECRET_KEY = "sk_test_YOUR_SECRET_KEY_HERE"  # Replace with your key
-INTASEND_PUBLIC_KEY = "pk_test_YOUR_PUBLIC_KEY_HERE"  # Replace with your key
+INTASEND_SECRET_KEY = "ISSecretKey_live_74e8344d-1a98-4912-835e-73a8264ef916"  
+INTASEND_PUBLIC_KEY = "ISPubKey_live_506b6e8a-8be9-4cc5-87dd-43f01c03a75a"  
 
 # Public Products Endpoint
 @api_view(['GET'])
@@ -42,21 +42,27 @@ def intasend_payment(request):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email', 'customer@example.com')
         
-        # Initialize IntaSend payment
+        # ==========================================
+        # CHECK YOUR KEYS HERE!
+        # ==========================================
+        INTASEND_SECRET_KEY = "ISSecretKey_live_74e8344d-1a98-4912-835e-73a8264ef916"  
+        # ==========================================
+
         headers = {
             "Authorization": f"Bearer {INTASEND_SECRET_KEY}",
             "Content-Type": "application/json"
         }
         
+        # IntaSend REQUIRES first_name and last_name
         payload = {
             "amount": amount,
             "currency": "KES",
-            "narration": f"BagHub Order #{order_id}",
             "phone_number": phone_number,
             "email": email,
-            "reference": f"BagHub-{order_id}",
-            "callback_url": "https://baghub-frontend-254.vercel.app/payment-success",
-            "checkout_type": "mpesa_stk_push"
+            "narration": f"BagHub Order #{order_id}",
+            "first_name": "BagHub",       # ADDED THIS
+            "last_name": "Customer",      # ADDED THIS
+            "callback_url": "https://baghub-frontend-254.vercel.app/" 
         }
         
         response = requests.post(
@@ -67,12 +73,14 @@ def intasend_payment(request):
         
         response_data = response.json()
         
+        # Log the response to help debug
+        print(f"IntaSend Response: {response_data}")
+        
         if response.status_code == 200 or response.status_code == 201:
-            # Update order
             try:
+                # Try to update order, but ignore if ID doesn't exist (since we use Date.now())
                 order = Order.objects.get(id=order_id, customer=request.user)
                 order.status = 'pending_payment'
-                order.mpesa_receipt_number = response_data.get('reference', str(order_id))
                 order.save()
             except:
                 pass
@@ -83,6 +91,7 @@ def intasend_payment(request):
                 'data': response_data
             }, status=status.HTTP_200_OK)
         else:
+            # Return the specific error from IntaSend so you see it on frontend
             return Response({
                 'success': False,
                 'error': response_data.get('message', 'Payment initialization failed')
@@ -90,6 +99,7 @@ def intasend_payment(request):
             
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # IntaSend Callback (Webhook)
 @api_view(['POST'])

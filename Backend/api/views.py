@@ -33,7 +33,6 @@ def get_all_products(request):
         return Response({'error': str(e)}, status=500)
 
 # IntaSend Payment Initialization
-# IntaSend Payment Initialization
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def intasend_payment(request):
@@ -42,88 +41,83 @@ def intasend_payment(request):
         order_id = request.data.get('order_id')
         phone_number = request.data.get('phone_number')
         email = request.data.get('email', 'customer@example.com')
-
-        # ==========================================
-        # FORMAT PHONE NUMBER
-        # ==========================================
-        phone_number = str(phone_number).replace("+", "").strip()
-
-        if phone_number.startswith("0"):
-            phone_number = "254" + phone_number[1:]
-
-        # ==========================================
-        # HEADERS
-        # ==========================================
+        
+        # Your IntaSend Keys
+        INTASEND_SECRET_KEY = "ISSecretKey_live_74e8344d-1a98-4912-835e-73a8264ef916"
+        
+        print(f"📱 Payment Request:")
+        print(f"  Amount: {amount}")
+        print(f"  Phone: {phone_number}")
+        print(f"  Order ID: {order_id}")
+        
+        # STEP 1: Get Access Token
+        print("🔑 Getting access token...")
+        auth_response = requests.post(
+            "https://payment.intasend.com/api/v1/auth/token/",
+            headers={"Authorization": f"Bearer {INTASEND_SECRET_KEY}"}
+        )
+        
+        auth_data = auth_response.json()
+        print(f"Auth Response: {auth_data}")
+        
+        if auth_response.status_code != 200:
+            return Response({
+                'error': f"Authentication failed: {auth_data.get('detail', 'Unknown error')}"
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        access_token = auth_data.get('access_token')
+        
+        if not access_token:
+            return Response({'error': 'No access token received from IntaSend'}, status=500)
+        
+        print(f"✅ Got access token: {access_token[:20]}...")
+        
+        # STEP 2: Make Payment Request
         headers = {
-            "Authorization": f"Bearer {INTASEND_SECRET_KEY}",
+            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
-
-        # ==========================================
-        # PAYLOAD
-        # ==========================================
+        
         payload = {
-            "public_key": INTASEND_PUBLIC_KEY,
+            "amount": int(amount),
             "currency": "KES",
-            "amount": float(amount),
             "phone_number": phone_number,
             "email": email,
-            "api_ref": f"BagHub-{order_id}",
-            "narration": f"Payment for BagHub Order #{order_id}"
+            "narration": f"BagHub Order #{order_id}",
+            "first_name": "BagHub",
+            "last_name": "Customer",
+            "callback_url": "https://baghub-frontend-254.vercel.app/"
         }
-
-        # ==========================================
-        # INTASEND REQUEST
-        # ==========================================
+        
+        print(f"🚀 Sending STK Push...")
+        
         response = requests.post(
-            "https://payment.intasend.com/api/v1/checkout/stk_push/",
+            "https://payment.intasend.com/api/v1/payment/mpesa-stk-push/",
             json=payload,
             headers=headers
         )
-
-        # ==========================================
-        # DEBUGGING
-        # ==========================================
-        print("STATUS CODE:", response.status_code)
-        print("RESPONSE:", response.text)
-
+        
         response_data = response.json()
-
-        # ==========================================
-        # SUCCESS
-        # ==========================================
-        if response.status_code in [200, 201]:
-
-            try:
-                order = Order.objects.get(id=order_id)
-
-                order.status = 'pending_payment'
-                order.save()
-
-            except Exception as order_error:
-                print("ORDER ERROR:", order_error)
-
+        
+        print(f"📥 IntaSend Response:")
+        print(f"  Status Code: {response.status_code}")
+        print(f"  Response: {response_data}")
+        
+        if response.status_code in [200, 201, 202]:
             return Response({
-                "success": True,
-                "message": "STK Push sent successfully.",
-                "data": response_data
+                'success': True,
+                'message': 'STK Push sent. Check your phone.',
+                'data': response_data
             }, status=status.HTTP_200_OK)
-
-        # ==========================================
-        # FAILED
-        # ==========================================
-        return Response({
-            "success": False,
-            "error": response_data
-        }, status=status.HTTP_400_BAD_REQUEST)
-
+        else:
+            return Response({
+                'success': False,
+                'error': f"IntaSend Error: {response_data.get('message', 'Unknown error')}"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
     except Exception as e:
-        print("INTASEND ERROR:", str(e))
-
-        return Response({
-            "success": False,
-            "error": str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"❌ Error: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # IntaSend Callback (Webhook)
 @api_view(['POST'])
 @permission_classes([AllowAny])

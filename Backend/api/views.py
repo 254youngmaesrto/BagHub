@@ -76,7 +76,7 @@ def intasend_payment(request):
         # INTASEND REQUEST
         # ==========================================
         response = requests.post(
-            "https://sandbox.intasend.com/api/v1/payment/mpesa-stk-push/",
+            "https://payment.intasend.com/api/v1/checkout/stk_push/",
             json=payload,
             headers=headers
         )

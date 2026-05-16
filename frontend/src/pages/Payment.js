@@ -29,27 +29,42 @@ const Payment = ({ order, onComplete }) => {
                     if (onComplete) onComplete();
                 }, 5000);
             } else {
-                const errorMsg = data && data.error ? String(data.error) : 'Payment failed';
-                setErrorMessage(errorMsg);
+                setErrorMessage('Payment failed');
             }
         } catch (err) {
             let errorMsg = 'Payment failed. Try again.';
             
             if (err.response && err.response.data) {
-                const responseData = err.response.data;
-                if (responseData.error) {
-                    errorMsg = String(responseData.error);
-                } else if (responseData.message) {
-                    errorMsg = String(responseData.message);
-                } else if (responseData.detail) {
-                    errorMsg = String(responseData.detail);
+                const data = err.response.data;
+                
+                // Try to extract error message from nested objects
+                if (typeof data === 'object') {
+                    if (data.error) {
+                        if (typeof data.error === 'object') {
+                            // Convert nested error object to string
+                            errorMsg = JSON.stringify(data.error);
+                        } else {
+                            errorMsg = String(data.error);
+                        }
+                    } else if (data.message) {
+                        errorMsg = String(data.message);
+                    } else if (data.detail) {
+                        errorMsg = String(data.detail);
+                    } else if (data.non_field_errors) {
+                        errorMsg = String(data.non_field_errors[0]);
+                    } else {
+                        // Stringify the whole object if no specific field
+                        errorMsg = JSON.stringify(data);
+                    }
+                } else {
+                    errorMsg = String(data);
                 }
             } else if (err.message) {
                 errorMsg = err.message;
             }
             
             setErrorMessage(errorMsg);
-            console.log('Payment error details:', err.response ? err.response.data : err.message);
+            console.error('Full error response:', err.response ? err.response.data : err);
         } finally {
             setLoading(false);
         }
@@ -64,14 +79,15 @@ const Payment = ({ order, onComplete }) => {
             </div>
 
             {errorMessage && errorMessage !== '' && (
-                <div style={{ color: 'red', background: '#ffe6e6', padding: '15px', borderRadius: '5px', marginBottom: '15px', wordWrap: 'break-word' }}>
-                    <strong>❌ Error:</strong><br/>{String(errorMessage)}
+                <div style={{ color: 'red', background: '#ffe6e6', padding: '15px', borderRadius: '5px', marginBottom: '15px', wordWrap: 'break-word', textAlign: 'left' }}>
+                    <strong>❌ Error:</strong><br/>
+                    <code style={{ fontSize: '14px' }}>{errorMessage}</code>
                 </div>
             )}
             
             {successMessage && successMessage !== '' && (
                 <div style={{ color: 'green', background: '#e6ffe6', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
-                    {String(successMessage)}
+                    {successMessage}
                 </div>
             )}
 

@@ -11,6 +11,7 @@ const Payment = ({ order, onComplete }) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setSuccess('');
 
         try {
             const response = await api.post('/intasend-payment/', {
@@ -23,13 +24,18 @@ const Payment = ({ order, onComplete }) => {
             if (response.data.success) {
                 setSuccess('✅ STK Push sent! Check your phone and enter PIN.');
                 setTimeout(() => {
-                    onComplete();
+                    if (onComplete) onComplete();
                 }, 5000);
             } else {
                 setError(response.data.error || 'Payment failed');
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'Payment failed. Try again.');
+            // Safely extract error message
+            const errorMsg = err.response?.data?.error || 
+                           err.response?.data?.message || 
+                           'Payment failed. Check console for details.';
+            setError(errorMsg);
+            console.error('Payment error:', err.response?.data);
         } finally {
             setLoading(false);
         }
@@ -37,14 +43,23 @@ const Payment = ({ order, onComplete }) => {
 
     return (
         <div style={{ maxWidth: '500px', margin: '50px auto', padding: '30px', textAlign: 'center' }}>
-            <h2>📱 M-Pesa Payment via IntaSend</h2>
+            <h2>📱 M-Pesa Payment</h2>
             <div style={{ background: '#f5f5f5', padding: '20px', borderRadius: '10px', marginBottom: '20px' }}>
                 <p><strong>Order ID:</strong> {order.id}</p>
                 <p><strong>Amount:</strong> KES {order.total_amount}</p>
             </div>
 
-            {error && <p style={{ color: 'red', background: '#ffe6e6', padding: '10px', borderRadius: '5px' }}>{error}</p>}
-            {success && <p style={{ color: 'green', background: '#e6ffe6', padding: '10px', borderRadius: '5px' }}>{success}</p>}
+            {error && (
+                <div style={{ color: 'red', background: '#ffe6e6', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
+                    <strong>❌ Error:</strong> {error}
+                </div>
+            )}
+            
+            {success && (
+                <div style={{ color: 'green', background: '#e6ffe6', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
+                    {success}
+                </div>
+            )}
 
             <form onSubmit={handlePayment}>
                 <input

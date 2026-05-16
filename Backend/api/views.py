@@ -50,31 +50,9 @@ def intasend_payment(request):
         print(f"  Phone: {phone_number}")
         print(f"  Order ID: {order_id}")
         
-        # STEP 1: Get Access Token
-        print("🔑 Getting access token...")
-        auth_response = requests.post(
-            "https://payment.intasend.com/api/v1/auth/token/",
-            headers={"Authorization": f"Bearer {INTASEND_SECRET_KEY}"}
-        )
-        
-        auth_data = auth_response.json()
-        print(f"Auth Response: {auth_data}")
-        
-        if auth_response.status_code != 200:
-            return Response({
-                'error': f"Authentication failed: {auth_data.get('detail', 'Unknown error')}"
-            }, status=status.HTTP_401_UNAUTHORIZED)
-        
-        access_token = auth_data.get('access_token')
-        
-        if not access_token:
-            return Response({'error': 'No access token received from IntaSend'}, status=500)
-        
-        print(f"✅ Got access token: {access_token[:20]}...")
-        
-        # STEP 2: Make Payment Request
+        # Direct payment request with secret key
         headers = {
-            "Authorization": f"Bearer {access_token}",
+            "Authorization": f"Bearer {INTASEND_SECRET_KEY}",
             "Content-Type": "application/json"
         }
         
@@ -89,7 +67,7 @@ def intasend_payment(request):
             "callback_url": "https://baghub-frontend-254.vercel.app/"
         }
         
-        print(f"🚀 Sending STK Push...")
+        print(f"🚀 Sending STK Push to IntaSend...")
         
         response = requests.post(
             "https://payment.intasend.com/api/v1/payment/mpesa-stk-push/",
@@ -97,11 +75,16 @@ def intasend_payment(request):
             headers=headers
         )
         
-        response_data = response.json()
+        print(f"📥 Status Code: {response.status_code}")
+        print(f"📥 Response Text: {response.text[:500]}")
         
-        print(f"📥 IntaSend Response:")
-        print(f"  Status Code: {response.status_code}")
-        print(f"  Response: {response_data}")
+        # Try to parse JSON, handle empty responses
+        try:
+            response_data = response.json() if response.text else {}
+        except:
+            response_data = {"raw_response": response.text}
+        
+        print(f"📥 Response Data: {response_data}")
         
         if response.status_code in [200, 201, 202]:
             return Response({
@@ -110,9 +93,10 @@ def intasend_payment(request):
                 'data': response_data
             }, status=status.HTTP_200_OK)
         else:
+            error_msg = response_data.get('message', response_data.get('error', 'Unknown error'))
             return Response({
                 'success': False,
-                'error': f"IntaSend Error: {response_data.get('message', 'Unknown error')}"
+                'error': f"IntaSend Error ({response.status_code}): {error_msg}"
             }, status=status.HTTP_400_BAD_REQUEST)
             
     except Exception as e:

@@ -41,67 +41,78 @@ def intasend_payment(request):
         order_id = request.data.get('order_id')
         phone_number = request.data.get('phone_number')
         email = request.data.get('email', 'customer@example.com')
-        
-        # Your IntaSend Keys
-        INTASEND_SECRET_KEY = "ISSecretKey_live_74e8344d-1a98-4912-835e-73a8264ef916"
-        
-        print(f"📱 Payment Request:")
-        print(f"  Amount: {amount}")
-        print(f"  Phone: {phone_number}")
-        print(f"  Order ID: {order_id}")
-        
-        # Direct payment request with secret key
+
+        # Sandbox/Test key (change to live later)
+        INTASEND_SECRET_KEY = "ISSecretKey_test_YOUR_KEY"
+
+        # Format phone number
+        if phone_number.startswith("0"):
+            phone_number = "254" + phone_number[1:]
+        elif phone_number.startswith("+254"):
+            phone_number = phone_number.replace("+", "")
+
+        print("📱 Payment Request")
+        print(f"Amount: {amount}")
+        print(f"Phone: {phone_number}")
+        print(f"Order ID: {order_id}")
+
         headers = {
             "Authorization": f"Bearer {INTASEND_SECRET_KEY}",
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "amount": int(amount),
             "currency": "KES",
             "phone_number": phone_number,
             "email": email,
-            "narration": f"BagHub Order #{order_id}",
             "first_name": "BagHub",
             "last_name": "Customer",
+            "narration": f"BagHub Order #{order_id}",
             "callback_url": "https://baghub-frontend-254.vercel.app/"
         }
-        
-        print(f"🚀 Sending STK Push to IntaSend...")
-        
+
+        print("🚀 Sending STK Push...")
+
         response = requests.post(
-            "https://payment.intasend.com/api/v1/payment/mpesa-stk-push/",
+            "https://payment.intasend.com/api/v1/checkout/mpesa-stk-push/",
             json=payload,
-            headers=headers
+            headers=headers,
+            timeout=30
         )
-        
+
         print(f"📥 Status Code: {response.status_code}")
-        print(f"📥 Response Text: {response.text[:500]}")
-        
-        # Try to parse JSON, handle empty responses
+        print(f"📥 Raw Response: {response.text}")
+
+        # Safe JSON handling
         try:
-            response_data = response.json() if response.text else {}
-        except:
-            response_data = {"raw_response": response.text}
-        
-        print(f"📥 Response Data: {response_data}")
-        
-        if response.status_code in [200, 201, 202]:
+            response_data = response.json()
+        except ValueError:
+            response_data = {
+                "error": "Invalid response from IntaSend",
+                "raw_response": response.text
+            }
+
+        print(f"📥 Parsed Response: {response_data}")
+
+        if response.status_code in [200, 201]:
             return Response({
-                'success': True,
-                'message': 'STK Push sent. Check your phone.',
-                'data': response_data
+                "success": True,
+                "message": "STK Push sent. Check your phone.",
+                "data": response_data
             }, status=status.HTTP_200_OK)
-        else:
-            error_msg = response_data.get('message', response_data.get('error', 'Unknown error'))
-            return Response({
-                'success': False,
-                'error': f"IntaSend Error ({response.status_code}): {error_msg}"
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
+
+        return Response({
+            "success": False,
+            "error": response_data
+        }, status=status.HTTP_400_BAD_REQUEST)
+
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        print(f"❌ IntaSend Error: {str(e)}")
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 # IntaSend Callback (Webhook)
 @api_view(['POST'])
 @permission_classes([AllowAny])
